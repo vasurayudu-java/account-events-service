@@ -1,0 +1,40 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: account-events-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/accounts}
+    username: ${DB_vasurayudu-java:accounts}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: io.github.vasurayudu.accounts.events
+        spring.json.value.default.type: io.github.vasurayudu.accounts.events.AccountEvent
+
+app:
+  kafka:
+    topic: account-events
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
